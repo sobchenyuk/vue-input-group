@@ -5,13 +5,13 @@
             v-for="(item, index) in countInput" :key="item.toString()"
             type="text"
             :maxlength="maxlength"
+            v-model="text[index]"
             @click="onClick(index)"
             @input="onInput($event)"
             @keyup="keymonitor"
             @blur="onBlur"
             class="input"
         >
-
     </div>
 </template>
 
@@ -34,26 +34,29 @@
                 activeNum: '',
                 elem: [],
                 count: '',
-                text: '',
+                text: [],
+                select: true
             }
         },
 
         methods: {
 
             init() {
-                window.addEventListener('mouseout', e => {
-                    if (this.activeNumTrue) {
-                        if (!e.toElement) {
-                            this.elem[this.activeNum].blur();
-                            this.activeNum = '';
-                        }
-                    }
-                });
+                window.addEventListener('mouseout', this.onMouseout);
 
                 this.elem = this.$el.querySelectorAll('.input');
 
                 this.number = Array.apply(null, {length: this.countInput}).map(Number.call, Number);
 
+            },
+
+            onMouseout(e) {
+                if (this.activeNumTrue) {
+                    if (!e.toElement) {
+                        this.elem[this.activeNum].blur();
+                        this.activeNum = '';
+                    }
+                }
             },
 
             onBlur() {
@@ -63,27 +66,28 @@
             keymonitor(e) {
                 const key = e.key;
                 const target = e.target;
-                const val = target.value;
                 const countNegative = this.activeNum - 1;
                 if (key === 'Backspace') {
                     if (this.number.indexOf(countNegative) !== -1) {
-                        if (target.selectionStart === 0) {
-                            val.length === 0 && this.onLeft();
-                        }
+                        this.select = false;
+                        target.selectionStart === 0 && this.onLeft();
                     }
                 }
             },
 
             onClick(val) {
                 this.activeNum = val;
-                if (this.activeNumTrue) {
-                    this.elem[this.activeNum].select();
-                }
+                this.activeNumTrue && this.elem[this.activeNum].select();
             },
 
             onInput($event) {
                 const target = $event.target;
+                this.select = true;
                 target.value.length === this.maxlength && this.onRight();
+
+                const array = Array.from(this.text.filter((e) => e))
+
+                this.$emit('v-input', array)
             },
 
             onLeft() {
@@ -106,7 +110,7 @@
                 if (this.number.indexOf(count) !== -1) {
                     elem[this.activeNum].blur();
                     elem[count].focus();
-                    elem[count].value.length && elem[count].select();
+                    if(this.select) elem[count].value.length && elem[count].select();
                     this.activeNum = count;
                 }
             }
@@ -121,7 +125,12 @@
 
         mounted() {
             this.init();
+        },
+
+        destroyed() {
+            window.removeEventListener('mouseout', this.onMouseout)
         }
+
     }
 </script>
 

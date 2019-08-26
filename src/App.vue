@@ -1,7 +1,9 @@
 <template>
   <div id="app">
 
-    <InputGroup :maxlength="maxlength" :countInput="countInput" />
+    <InputGroup :maxlength="maxlength" :countInput="countInput" @v-input="vInput"/>
+
+    <p class="result">Script result: {{ inputGroupText | join }}</p>
 
   </div>
 </template>
@@ -11,12 +13,30 @@
 import InputGroup from "@/components/InputGroup";
 export default {
   name: 'app',
+
   components: {InputGroup},
+
   data() {
     return {
       countInput: 4,
       maxlength: 2,
+      inputGroupText: []
     }
+  },
+
+  filters: {
+    join(value) {
+      if (!value) return ''
+      return value.join('-')
+    }
+  },
+
+  methods: {
+
+    vInput(result) {
+      this.inputGroupText = result;
+    }
+
   }
 }
 </script>
@@ -32,5 +52,11 @@ export default {
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .result {
+    margin-top: 1em;
+    font-size: 50px;
+    font-weight: 900;
   }
 </style>
