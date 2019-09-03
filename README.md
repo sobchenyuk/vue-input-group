@@ -1,5 +1,5 @@
 
-![](https://github.com/sobchenyuk/vue-input-group/blob/master/vue-input-group.png)
+[](https://github.com/sobchenyuk/vue-input-group/blob/master/vue-input-group.png)
 
 #Custom vue input group
 
