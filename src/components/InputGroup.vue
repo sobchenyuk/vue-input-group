@@ -5,6 +5,7 @@
             v-for="(item, index) in countInput" :key="item.toString()"
             type="text"
             :maxlength="maxlength"
+            :placeholder="placeholder"
             v-model="text[index]"
             @click="onClick(index)"
             @input="onInput($event)"
@@ -120,6 +121,15 @@
         computed: {
             activeNumTrue() {
                 return typeof this.activeNum !== 'string'
+            },
+            placeholder() {
+                let i = 0;
+                let result = '';
+                while (i < this.maxlength) {
+                    result += 'X';
+                    i++
+                }
+                return result;
             }
         },
 
@@ -134,7 +144,7 @@
     }
 </script>
 
-<style scoped>
+<style>
     .input-group {
         display: flex;
     }
@@ -147,5 +157,15 @@
 
     .input + .input {
         margin-left: 1em;
+    }
+
+    @media (max-width: 768px) {
+        .input {
+            font-size: 40px;
+        }
+
+        .input + .input {
+            margin-left: 0.5em;
+        }
     }
 </style>

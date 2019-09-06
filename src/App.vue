@@ -3,7 +3,7 @@
 
     <InputGroup :maxlength="maxlength" :countInput="countInput" @v-input="vInput"/>
 
-    <p class="result">Script result: {{ inputGroupText | join }}</p>
+    <p class="result">Script result: <span class="result__input">{{ inputGroupText | join }}</span></p>
 
   </div>
 </template>
@@ -58,5 +58,14 @@ export default {
     margin-top: 1em;
     font-size: 50px;
     font-weight: 900;
+  }
+  @media (max-width: 768px) {
+      .result {
+          font-size: 40px;
+      }
+
+      .result__input {
+          display: block;
+      }
   }
 </style>
