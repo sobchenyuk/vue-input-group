@@ -1,19 +1,49 @@
 <template>
-    <div class="input-group">
 
-        <input
-            v-for="(item, index) in countInput" :key="item.toString()"
-            type="text"
-            :maxlength="maxlength"
-            :placeholder="placeholder"
-            v-model="text[index]"
-            @click="onClick(index)"
-            @input="onInput($event)"
-            @keyup="keymonitor"
-            @blur="onBlur"
-            class="input"
+    <div
+            class="input-group__wrapper"
+            :class="{ [isInputGroupWrapperClass]: isInputGroupWrapperClass.length}"
+            aria-labelledby="block group input fields"
+    >
+
+        <label
+                class="input-group__label"
+                :class="{ [isLabelGroupClass]: isLabelGroupClass.length}"
+                v-if="isLabel"
+        >{{ labelGroupText }}</label>
+
+        <div
+                class="input-group"
+                :class="{
+                    [isInputGroupClass]: isInputGroupClass.length,
+                    'input-group_type_is-many': isManyInput
+                }"
+                aria-labelledby="group input"
         >
+            <div
+                    class="input-group__col"
+                    v-for="(item, index) in countInput" :key="item.toString()"
+            >
+
+                <input
+                        type="text"
+                        :maxlength="maxlength"
+                        :placeholder="placeholder"
+                        v-model="text[index]"
+                        @click="onClick(index)"
+                        @input="onInput($event)"
+                        @keyup="keymonitor"
+                        @blur="onBlur"
+                        class="input-group__control"
+                        :class="{ [isInputGroupControlClass]: isInputGroupControlClass.length}"
+                        :aria-labelledby="`password entry-${index.toString()}`"
+                >
+            </div>
+
+
+        </div>
     </div>
+
 </template>
 
 <script>
@@ -28,6 +58,25 @@
                 type: Number,
                 default: 2,
             },
+            placeholderSymbol: {
+                type: String,
+                default: 'X',
+            },
+            labelGroupText: {
+                type: String,
+                default: ''
+            },
+            allClass: {
+                type: Object,
+                default() {
+                    return {
+                        inputGroupWrapper : '',
+                        labelGroup : '',
+                        inputGroup : '',
+                        inputGroupControl : ''
+                    }
+                }
+            }
         },
         data() {
             return {
@@ -36,7 +85,10 @@
                 elem: [],
                 count: '',
                 text: [],
-                select: true
+                select: true,
+
+                widthInputControlGroup: '',
+                widthInputControl: ''
             }
         },
 
@@ -45,12 +97,12 @@
             init() {
                 window.addEventListener('mouseout', this.onMouseout);
 
-                this.elem = this.$el.querySelectorAll('.input');
+                this.elem = this.$el.querySelectorAll('.input-group__control');
 
                 this.number = Array.apply(null, {length: this.countInput}).map(Number.call, Number);
-
             },
 
+            // delete child support focus if cursor leaves browser screen
             onMouseout(e) {
                 if (this.activeNumTrue) {
                     if (!e.toElement) {
@@ -64,6 +116,7 @@
                 this.activeNum = '';
             },
 
+            // I get all the keystrokes at the input field
             keymonitor(e) {
                 const key = e.key;
                 const target = e.target;
@@ -71,14 +124,23 @@
                 if (key === 'Backspace') {
                     if (this.number.indexOf(countNegative) !== -1) {
                         this.select = false;
-                        target.selectionStart === 0 && this.onLeft();
+                        // if the cursor is at the beginning
+                        if (target.selectionStart === 0) {
+                            this.onLeft();
+                            // rearrange cursor
+                            const elem = this.elem[this.activeNum]; // current item
+                            elem.setSelectionRange( elem.value.length, elem.value.length );
+                        }
                     }
                 }
             },
 
+            // set focus on the selected item
             onClick(val) {
                 this.activeNum = val;
-                this.activeNumTrue && this.elem[this.activeNum].select();
+                if (this.activeNumTrue) {
+                    this.elem[this.activeNum].value.length > 0 && this.elem[this.activeNum].select();
+                }
             },
 
             onInput($event) {
@@ -114,23 +176,54 @@
                     if(this.select) elem[count].value.length && elem[count].select();
                     this.activeNum = count;
                 }
-            }
+            },
+
+            getClassName(name) {
+                return typeof this.allClass[name] !== 'undefined'
+                    ?  this.allClass[name].trim()
+                    : ''
+            },
 
         },
 
         computed: {
+
             activeNumTrue() {
                 return typeof this.activeNum !== 'string'
             },
+
+            isLabel() {
+                return this.labelGroupText.trim()
+            },
+
+            isManyInput() {
+                return this.countInput > 1
+            },
+
             placeholder() {
+                const symbol = this.placeholderSymbol;
                 let i = 0;
                 let result = '';
                 while (i < this.maxlength) {
-                    result += 'X';
+                    result += symbol;
                     i++
                 }
                 return result;
+            },
+
+            isInputGroupWrapperClass() {
+                return this.getClassName('inputGroupWrapper')
+            },
+            isLabelGroupClass() {
+                return this.getClassName('labelGroup')
+            },
+            isInputGroupClass() {
+                return this.getClassName('inputGroup')
+            },
+            isInputGroupControlClass() {
+                return this.getClassName('inputGroupControl')
             }
+
         },
 
         mounted() {
@@ -145,27 +238,49 @@
 </script>
 
 <style>
+    *, ::after, ::before {
+        box-sizing: border-box;
+    }
+
     .input-group {
         display: flex;
+        flex-wrap: wrap;
+        margin-right: -15px;
+        margin-left: -15px;
     }
 
-    .input {
+    .input-group__col {
+        flex-basis: 0;
+        flex-grow: 1;
+        max-width: 100%;
+        position: relative;
+        width: 100%;
+        min-height: 1px;
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+
+    .input-group__wrapper {
+        width: 100%;
+    }
+
+    .input-group__label {
+        font-size: 40px;
+        padding: .5em;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .input-group__control {
         text-align: center;
         font-size: 60px;
-        width: 25%;
-    }
-
-    .input + .input {
-        margin-left: 1em;
+        display: block;
+        width: 100%;
     }
 
     @media (max-width: 768px) {
-        .input {
+        .input-group__control {
             font-size: 40px;
-        }
-
-        .input + .input {
-            margin-left: 0.5em;
         }
     }
 </style>
